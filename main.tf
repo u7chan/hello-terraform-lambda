@@ -25,14 +25,14 @@ resource "aws_iam_role" "iam_for_lambda" {
   assume_role_policy = data.aws_iam_policy_document.policy.json
 }
 
-resource "aws_lambda_function" "lambda" {
+resource "aws_lambda_function" "lambda-1" {
   function_name = "hello_lambda"
 
   filename         = "dist/index.zip"
   source_code_hash = filemd5("dist/index.zip")
 
   role    = aws_iam_role.iam_for_lambda.arn
-  handler = "index.handler"
+  handler = "index.hello"
   runtime = "nodejs16.x"
 
   environment {
@@ -40,5 +40,16 @@ resource "aws_lambda_function" "lambda" {
       greeting = "Hello terraform !!"
     }
   }
+}
+
+resource "aws_lambda_function" "lambda-2" {
+  function_name = "world_lambda"
+
+  filename         = "dist/index.zip"
+  source_code_hash = filemd5("dist/index.zip")
+
+  role    = aws_iam_role.iam_for_lambda.arn
+  handler = "index.world"
+  runtime = "nodejs16.x"
 }
 
