@@ -1,4 +1,4 @@
-import hello from './hello';
-import world from './world';
+import getUser from './getUser';
+import putUser from './putUser';
 
-export { hello, world };
+export { getUser, putUser };
