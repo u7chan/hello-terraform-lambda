@@ -152,6 +152,10 @@ resource "aws_api_gateway_rest_api" "rest_api" {
   description = "'terraform_example' API Gateway"
 }
 
+# ======================
+# API: get_user
+# ======================
+
 resource "aws_api_gateway_resource" "get_user" {
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
   parent_id   = aws_api_gateway_rest_api.rest_api.root_resource_id
@@ -189,7 +193,7 @@ resource "aws_api_gateway_integration" "get_user" {
   http_method             = aws_api_gateway_method.get_user.http_method
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
-  uri                     = aws_lambda_function.get_user.invoke_arn
+  uri                     = aws_lambda_function.get_user.invoke_arn  // Lambda ARN
   credentials             = aws_iam_role.iam_for_api_gateway.arn
 }
 
@@ -209,6 +213,72 @@ resource "aws_api_gateway_integration_response" "get_user" {
     "method.response.header.Access-Control-Allow-Origin" = "'*'"
   }
 }
+
+# ======================
+# API: put_user
+# ======================
+
+resource "aws_api_gateway_resource" "put_user" {
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  parent_id   = aws_api_gateway_rest_api.rest_api.root_resource_id
+  path_part   = "put_user"
+}
+
+resource "aws_api_gateway_method" "put_user" {
+  rest_api_id      = aws_api_gateway_rest_api.rest_api.id
+  resource_id      = aws_api_gateway_resource.put_user.id
+  http_method      = "POST"
+  authorization    = "NONE"
+  api_key_required = true  // Use API Key 
+}
+
+resource "aws_api_gateway_method_response" "put_user" {
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  resource_id = aws_api_gateway_resource.put_user.id
+  http_method = aws_api_gateway_method.put_user.http_method
+  status_code = "200"
+
+  response_models = {
+    "application/json" = "Empty"
+  }
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true,
+    "method.response.header.Access-Control-Allow-Methods" = true,
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration" "put_user" {
+  rest_api_id             = aws_api_gateway_rest_api.rest_api.id
+  resource_id             = aws_api_gateway_resource.put_user.id
+  http_method             = aws_api_gateway_method.put_user.http_method
+  integration_http_method = "POST"
+  type                    = "AWS_PROXY"
+  uri                     = aws_lambda_function.put_user.invoke_arn  // Lambda ARN
+  credentials             = aws_iam_role.iam_for_api_gateway.arn
+}
+
+resource "aws_api_gateway_integration_response" "put_user" {
+  depends_on = [
+    "aws_api_gateway_integration.put_user"
+  ]
+
+  rest_api_id = aws_api_gateway_rest_api.rest_api.id
+  resource_id = aws_api_gateway_resource.put_user.id
+  http_method = aws_api_gateway_method.put_user.http_method
+  status_code = aws_api_gateway_method_response.put_user.status_code
+
+  response_parameters ={
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'",
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST,PUT'",
+    "method.response.header.Access-Control-Allow-Origin" = "'*'"
+  }
+}
+
+# ======================
+# Deployment
+# ======================
 
 resource "aws_api_gateway_deployment" "deployment" {
   rest_api_id = aws_api_gateway_rest_api.rest_api.id
