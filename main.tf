@@ -163,7 +163,7 @@ resource "aws_api_gateway_method" "get_user" {
   resource_id      = aws_api_gateway_resource.get_user.id
   http_method      = "GET"
   authorization    = "NONE"
-  api_key_required = false
+  api_key_required = true  // Use API Key 
 }
 
 resource "aws_api_gateway_method_response" "get_user" {
@@ -226,4 +226,27 @@ resource "aws_api_gateway_stage" "stg" {
   stage_name    = "stg"
   rest_api_id   = aws_api_gateway_rest_api.rest_api.id
   deployment_id = aws_api_gateway_deployment.deployment.id
+}
+
+# ======================
+# API Key
+# ======================
+
+resource "aws_api_gateway_usage_plan" "usage_plan" {
+  name = "terraform_example_usage_plan"
+
+  api_stages {
+    api_id = aws_api_gateway_rest_api.rest_api.id
+    stage  = aws_api_gateway_stage.stg.stage_name
+  }
+}
+
+resource "aws_api_gateway_api_key" "api_key" {
+  name = "terraform_example_api_key"
+}
+
+resource "aws_api_gateway_usage_plan_key" "main" {
+  key_id        = aws_api_gateway_api_key.api_key.id
+  key_type      = "API_KEY"
+  usage_plan_id = aws_api_gateway_usage_plan.usage_plan.id
 }
