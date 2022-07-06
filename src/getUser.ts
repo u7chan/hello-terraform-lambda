@@ -8,7 +8,7 @@ import {
 const client = new DynamoDBClient({ region: 'ap-northeast-3' });
 const tableName = 'terrform-table';
 
-export default async (
+export const getUser = async (
   _event: APIGatewayEvent,
   _context: Context
 ): Promise<APIGatewayProxyResult> => {

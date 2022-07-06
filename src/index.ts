@@ -1,4 +1,4 @@
-import getUser from './getUser';
-import putUser from './putUser';
+import { getUser } from './getUser';
+import { putUser } from './putUser';
 
 export { getUser, putUser };

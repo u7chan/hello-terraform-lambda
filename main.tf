@@ -107,22 +107,22 @@ resource "aws_iam_policy_attachment" "api_gateway_policy_attach" {
 resource "aws_lambda_function" "get_user" {
   function_name = "terrform-getUser"
 
-  filename         = "dist/index.zip"
-  source_code_hash = filemd5("dist/index.zip")
+  filename         = var.file_name_get_user
+  source_code_hash = filemd5(var.file_name_get_user)
 
   role    = aws_iam_role.iam_for_lambda.arn
-  handler = "index.getUser"
+  handler = "getUser.getUser"
   runtime = "nodejs16.x"
 }
 
 resource "aws_lambda_function" "put_user" {
   function_name = "terrform-putUser"
 
-  filename         = "dist/index.zip"
-  source_code_hash = filemd5("dist/index.zip")
+  filename         = var.file_name_put_user
+  source_code_hash = filemd5(var.file_name_put_user)
 
   role    = aws_iam_role.iam_for_lambda.arn
-  handler = "index.putUser"
+  handler = "putUser.putUser"
   runtime = "nodejs16.x"
 }
 

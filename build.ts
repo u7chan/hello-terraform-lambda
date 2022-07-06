@@ -1,17 +1,17 @@
 import { build, BuildOptions } from 'esbuild';
-import { zip } from 'compressing';
-import { dependencies } from './package.json';
+import fs from 'fs';
+import archiver from 'archiver';
 import * as modules from './src/index';
 
 const basePath = './src/{0}.ts';
-const outPath = './dist/{0}.esm.js';
+const outDir = './dist';
+const outPath = `${outDir}/{0}.esm.js`;
 
 const sharedOptions: BuildOptions = {
   bundle: true,
   logLevel: 'info',
   minify: true,
-  sourcemap: false,
-  external: Object.keys(dependencies),
+  sourcemap: true,
   platform: 'node',
   target: ['es2020'],
 };
@@ -23,21 +23,35 @@ const builds = Object.keys(modules)
     return {
       entryPoints,
       outfile,
+      moduleName,
     };
   })
-  .map(async (options) => {
+  .map(async ({ moduleName, ...options }) => {
     const { outfile } = options;
     await build({
       ...sharedOptions,
       ...options,
     });
-    return outfile;
+    return { outfile, moduleName };
   });
 
-Promise.all(builds).then(async (buildFiles) => {
-  return buildFiles.map((buildFile) => {
-    const src = `${process.cwd()}/${buildFile}`;
-    const dst = `${src}.zip`;
-    return zip.compressFile(src, dst);
+Promise.all(builds).then(async (results) => {
+  return results.map(({ outfile, moduleName }) => {
+    const src = {
+      fileName: `${process.cwd()}/${outfile}`,
+      name: `${moduleName}.js`,
+    };
+    const srcMap = {
+      fileName: `${src.fileName}.map`,
+      name: `${moduleName}.js.map`,
+    };
+    const dst = `${process.cwd()}/${outDir}/${moduleName}.zip`;
+    const archive = archiver('zip', {
+      zlib: { level: 9 },
+    });
+    archive.pipe(fs.createWriteStream(dst));
+    archive.append(fs.createReadStream(src.fileName), { name: src.name });
+    archive.append(fs.createReadStream(srcMap.fileName), { name: srcMap.name });
+    return archive.finalize();
   });
 });
